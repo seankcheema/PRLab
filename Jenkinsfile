@@ -8,9 +8,6 @@ pipeline {
         }
         stage('Build') {
             steps {
-                sh 'java -version'
-                sh 'update-alternatives --list java || true'
-                sh 'ls /usr/lib/jvm || true'
                 sh 'mvn -B clean package'
             }
         }
