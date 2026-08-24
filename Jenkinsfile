@@ -1,55 +1,20 @@
 pipeline {
     agent any
-    
-    tools {
-        maven 'Maven3'
-    }
-    
-    options {
-        buildDiscarder(logRotator(numToKeepStr: '10'))
-        timeout(time: 1, unit: 'HOURS')
-    }
-    
     stages {
         stage('Checkout') {
             steps {
                 checkout scm
             }
         }
-        stage('Build') {
+        stage('Build Image') {
             steps {
-                sh 'mvn -B clean package'
+                sh 'docker build -t team-skeleton .'
             }
         }
-        stage('Test') {
+        stage('Smoke Test') {
             steps {
-                sh 'mvn -B test || true'
+                sh 'docker run --rm team-skeleton'
             }
-            post {
-                always {
-                    junit testResults: 'target/surefire-reports/*.xml', 
-                          allowEmptyResults: true
-                }
-            }
-        }
-        stage('Archive') {
-            steps {
-                archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
-            }
-        }
-    }
-    
-    post {
-        always {
-            echo "Pipeline Status: ${currentBuild.result}"
-            junit testResults: 'target/surefire-reports/*.xml', 
-                  allowEmptyResults: true
-        }
-        success {
-            echo '✓ Build SUCCESS - Ready for deployment'
-        }
-        failure {
-            echo '✗ Build FAILED - Check logs for details'
         }
     }
 }
